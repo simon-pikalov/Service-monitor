@@ -34,7 +34,7 @@ $ pip install -r requirements.txt
 
 
 # The Program
-![](photoLib/menu.png)
+![](photolib/menu.png)
 
 ### help menu  : 
 Type help

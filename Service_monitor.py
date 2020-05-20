@@ -1,4 +1,4 @@
-# coding: utf-8
+﻿# coding: utf-8
 
 import time
 import subprocess
@@ -6,7 +6,6 @@ import os
 import psutil
 import platform
 import threading
-
 
 
 os.name
@@ -66,7 +65,7 @@ class WinService(threading.Thread):
             if exist == 0:
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
                 messege = time.ctime() + "," + servlist+"\n"
-                print(messege)
+                #print(messege)
                 self.Status_Log.write(messege)
                 self.servicelog.remove(servlist)
                 self.Status_Log.close()
@@ -81,7 +80,7 @@ class WinService(threading.Thread):
             if exist == 0:
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
                 messege = time.ctime() +"," + listNew +"\n"
-                print(messege)
+                #print(messege)
                 self.Status_Log.write(messege)
                 self.servicelog.append(listNew)
                 self.Status_Log.close()
@@ -124,7 +123,7 @@ class linux(threading.Thread):
                     inside = 1
             if inside == 0 and history != "":
                 messege = time.ctime() + "," + history + ",changed status\n"
-                print(messege)
+                #print(messege)
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
                 self.Status_Log.write(messege)
                 self.Status_Log.close()
@@ -139,7 +138,7 @@ class linux(threading.Thread):
                     inside = 1
             if inside == 0 and new != "":
                 messege=time.ctime() + "," + new + ",changed status\n"
-                print(messege)
+                #print(messege)
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
                 self.Status_Log.write(messege)
                 self.Status_Log.close()
@@ -209,6 +208,71 @@ def autoMonitor(sleepTime):
         exit()
 
 
+def menual():
+
+    try:
+        list =open("serviceList.txt", 'r')
+    except:
+        print("no log files found")
+        return 
+    print("please write first timestamp in this format (Month date hh:mm:ss year): ")
+    firstMonth = input("Insert Mounth name (example May)")
+    firstdate = input("Insert date name (example 01)")
+    firsthour = input("Insert hh name (example 10)")
+    firstminut = input("Insert mm name (example 12)")
+    firstsecond = input("Insert ss name (example 55)")
+    firstyear = input("Insert year name (example 2020)")
+    firstTimestamp=firstMonth+" "+firstdate+" "+firsthour+":"+firstminut+":"+firstsecond+" "+firstyear
+    print("please write second timestamp in this format (Month date hh:mm:ss year): ")
+    secondMonth = input("Insert Mounth name (example May)")
+    seconddate = input("Insert date name (example 01)")
+    secondhour = input("Insert hh name (example 10)")
+    secondminut = input("Insert mm name (example 12)")
+    secondsecond = input("Insert ss name (example 55)")
+    secondyear = input("Insert year name (example 2020)")
+    secondTimestamp=secondMonth+" "+seconddate+" "+secondhour+":"+secondminut+":"+secondsecond+" "+secondyear
+
+
+    firstLog=[]
+    secondLog=[]
+    for line in list:
+        if line.__contains__(firstTimestamp):
+            firstLog.append(line)
+        elif line.__contains__(secondTimestamp):
+            secondLog.append(line)
+
+    for history in firstLog:
+        inside = 0
+        history=substringComa(history)
+        for new in secondLog:
+            if new =="" or history=="":
+                continue
+            new = substringComa(new)
+            if (new != "" and history != "" and new in history):
+                inside = 1
+        if inside == 0 and history != "":
+            messege = history + ",changed status\n"
+            #print(messege)
+
+
+        # check if a service has born
+    for new in secondLog:
+        inside = 0
+        new =substringComa(new)
+        for history in firstLog:
+            history =substringComa(history)
+            if (new != "" and history != "" and new in history):
+                inside = 1
+        if inside == 0 and new != "":
+            messege = new + ",changed status\n"
+            #print(messege)
+
+
+def substringComa(word):
+    wordStr=str(word)
+    firstComaIndex = wordStr.find(',')
+    wordStr=wordStr[firstComaIndex:]
+    return wordStr
 
 def main() :
     print("Service monitor created by Simon Pikalov")
@@ -223,11 +287,8 @@ def main() :
 
         mode = input("\nchoose an action \n")
 
-        if mode == "manual" or  mode == "m" :
-                if isManualRunning ==True:
-                    print("\nThe program is already running \n")
-
-                else:
+        if mode == "menual" or  mode == "m" :
+                    menual()
                     print("Manual Mode ")
                     isManualRunning == True
 
@@ -257,11 +318,6 @@ def main() :
             print(
                 "\n\n\n@author Simon Pikalov\nThis program helps monitor system services by whriting a log file that contain all the changes in the services on you machine.\n" + menuMessege)
 
-        elif mode == "dec":
-                print("stop")
-
-        elif mode == "stop":
-                print("stop")
 
 
         elif mode == "exit":

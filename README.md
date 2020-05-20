@@ -4,7 +4,7 @@ The program is designed to help notice a problems in a services of a computer
 the program have two modes of doing that automatic and manual.  
   
  
- ####Main features : 
+ # Main features : 
   
   - Command line  Based User interface with interactive control's
   - write a all the service running to a log file. 
@@ -38,26 +38,26 @@ $ pip install -r requirements.txt
 
 ### help menu  : 
 Type help
-![](photoLib/help.png)
+![](photolib/help.png)
 
 ### Auto Mode : 
 Type auto and then choose a time stamp for intervals of the program to run. 
-![](photoLib/auto.png)
+![](photolib/auto.png)
 
 
 
 ### Menual Mode : 
 Type menual and then type the time info
-![](photoLib/menual.png)
+![](photolib/menual.png)
 
 
 ### Log file   : 
 This log file show's all the services running on your computer with a interval that the user chooses 
-![](photoLib/logper.png)
+![](photolib/logper.png)
 
 ### Event Log file   : 
 This log file show's all the services changed on your computer compered to the previous log.
-![](photoLib/log.png)
+![](photolib/log.png)
 
 
 

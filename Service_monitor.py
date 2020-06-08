@@ -6,13 +6,21 @@ import os
 import psutil
 import platform
 import threading
+import cryptography
+import base64
+import os
+
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
-os.name
 
 platform.system()
 platform.release()
 from sys import platform as _platform
+
 
 
 #       Windows part #
@@ -26,6 +34,7 @@ class WinService(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         servs = psutil.win_service_iter()
+        self.key = key_from_password()
         self.Status_Log_FileName="service_log" + ".txt"
         self.serviceList_Log_FileName = "serviceList" + ".txt"
         self.Status_Log = open(self.Status_Log_FileName,"a")
@@ -48,7 +57,9 @@ class WinService(threading.Thread):
         for serv in servs:
             line = serv.display_name() + "," + serv.status()
             self.servicelogNew.append(line)
-            self.serviceList.write(time.ctime()+","+line+"\n")
+            message = time.ctime() + "," + line + "\n"
+            encypted = encrypt(self.key, message)
+            self.serviceList.write(encypted)
         self.serviceList.close()
 
 
@@ -64,9 +75,10 @@ class WinService(threading.Thread):
                     break
             if exist == 0:
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
-                messege = time.ctime() + "," + servlist+"\n"
+                message = time.ctime() + "," + servlist
+                encypted = encrypt(self.key, message)
                 #print(messege)
-                self.Status_Log.write(messege)
+                self.Status_Log.write(encypted)
                 self.servicelog.remove(servlist)
                 self.Status_Log.close()
 
@@ -79,9 +91,10 @@ class WinService(threading.Thread):
                     break
             if exist == 0:
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
-                messege = time.ctime() +"," + listNew +"\n"
+                messege = time.ctime() +"," + listNew
                 #print(messege)
-                self.Status_Log.write(messege)
+                encypted = encrypt(self.key, messege)
+                self.Status_Log.write(encypted)
                 self.servicelog.append(listNew)
                 self.Status_Log.close()
 
@@ -102,6 +115,7 @@ class linux(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.historyLog = []
+        self.key = key_from_password()
         self.Status_Log_FileName = "service_log" + ".txt"
         self.serviceList_Log_FileName = "serviceList" + ".txt"
         self.Status_Log = open(self.Status_Log_FileName, "a")
@@ -188,6 +202,7 @@ def autoMonitor(sleepTime):
 
     os = getOs()
 
+
     if os == "linux":
             print("OS detected : linux\na"+time.ctime()+" starting automatic monitoring.")
             ubuntu = linux()
@@ -211,9 +226,9 @@ def autoMonitor(sleepTime):
 def menual():
 
     try:
-        list =open("serviceList.txt", 'r')
+        list =open("serviceList_decrypted.txt", 'r')
     except:
-        print("no log files found")
+        print("no decrypted log files found first generate serviceList_decrypted.txt with the decrypt in menu ")
         return 
     print("please write first timestamp in this format (Month date hh:mm:ss year): ")
     firstMonth = input("Insert Mounth name (example May)")
@@ -274,6 +289,68 @@ def substringComa(word):
     wordStr=wordStr[firstComaIndex:]
     return wordStr
 
+
+# with the help of this site
+#https://nitratine.net/blog/post/encryption-and-decryption-in-python/
+def key_from_password():
+    password_provided = input("\n\nType a password :\n\n")
+    password = password_provided.encode()  # Convert to type bytes
+    salt = b'salt_'  # CHANGE THIS - recommend using a key from os.urandom(16), must be of type bytes
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password))  # Can only use kdf once
+    return key
+
+
+def decrypt_csv(key,input_file):
+
+    try:
+
+        output_file = str(input_file)
+        output_file= output_file[0:output_file.find('.')]
+        output_file+="_decrypted.txt"
+        fernet = Fernet(key)
+        out=open(output_file, 'a')
+
+        first = True
+        with open(input_file, 'r') as f:
+                if first:
+                    f.readline()
+                    first=False
+                for line in f:
+                    data = f.readline()
+                    line_byte = line.encode("utf-8")
+                    line_byte=line_byte[2:-2]
+                    decrypted = fernet.decrypt(line_byte)
+                    decrypted_str = str(decrypted)
+                    decrypted_str=decrypted_str[2:-2]
+                    out.write(decrypted_str+"\n")
+        out.flush()
+        out.close()
+
+    except:
+        print("Eror during decryption , check your file name and password.")
+
+
+
+def encrypt(key,message):
+    str_message = str(message)
+    f = Fernet(key)
+    encrypted = f.encrypt(str_message.encode('utf-8'))
+    encypted_str = str(encrypted)
+    encypted_str +="\n"
+    return encypted_str
+
+def decrypt(key,encrypted):
+    f = Fernet(key)
+    decrypted = f.decrypt(encrypted)
+    return decrypted
+
 def main() :
     print("Service monitor created by Simon Pikalov")
     print("███████████████████████████████████\n███████████████████████████████████\n███████████████████████████████████\n█████████████▒▒▒▒▒▒▒▒▒█████████████\n█████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█████████\n███████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒███████\n██████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██████\n█████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█████\n█████▒▒▒▒█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█▒▒▒▒█████\n████▒▒▒▒███▒▒▒▒▒▒▒▒▒▒▒▒▒███▒▒▒▒████\n███▒▒▒▒██████▒▒▒▒▒▒▒▒▒██████▒▒▒▒███\n███▒▒▒███▐▀███▒▒▒▒▒▒▒███▀▌███▒▒▒███\n███▒▒▒██▄▐▌▄███▒▒▒▒▒███▄▐▌▄██▒▒▒███\n███▒▒▒▒██▌███▒▒▒█▒█▒▒▒███▐██▒▒▒▒███\n██▒▒▒▒▒▒███▒▒▒▒██▒██▒▒▒▒███▒▒▒▒▒▒██\n█▒▒▒▒▒▒▒▒█▒▒▒▒██▒▒▒██▒▒▒▒█▒▒▒▒▒▒▒▒█\n█▒▒▒▒▒▒▒▒▒▒▒▒▒█▒▒▒▒▒█▒▒▒▒▒▒▒▒▒▒▒▒▒█\n█▒▒▒▒█▒▒█▒▒▒▒██▒▒▒▒▒██▒▒▒▒█▒▒█▒▒▒▒█\n██▒▒▒█▒▒█▒▒▒▒█▒██▒██▒█▒▒▒▒█▒▒█▒▒▒██\n███▒█▒▒█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█▒▒█▒███\n█████▒▒█▒▒▒▐███████████▌▒▒▒█▒▒█████\n███████▒▒▒▐█▀██▀███▀██▀█▌▒▒▒███████\n███████▒▒▒▒█▐██▐███▌██▌█▒▒▒▒███████\n███████▒▒▒▒▒▐▒▒▐▒▒▒▌▒▒▌▒▒▒▒▒███████\n████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████████\n████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████████\n█████████▒▒█▒█▒▒▒█▒▒▒█▒█▒▒█████████\n█████████▒██▒█▒▒▒█▒▒▒█▒██▒█████████\n██████████████▒▒███▒▒██████████████\n██████████████▒█████▒██████████████\n███████████████████████████████████\n███████████████████████████████████")
@@ -318,6 +395,16 @@ def main() :
             print(
                 "\n\n\n@author Simon Pikalov\nThis program helps monitor system services by whriting a log file that contain all the changes in the services on you machine.\n" + menuMessege)
 
+
+        elif mode == "decrypt":
+                key=key_from_password()
+                file_name = input("To decrypt serviceList.txt type 1\nTo decrypt service_log.txt type 2\nTo decrypt other file type path to your file\n")
+                if file_name in "1":
+                    file_name = "serviceList.txt"
+                elif file_name in "2":
+                    file_name="service_log.txt"
+
+                decrypt_csv(key,file_name)
 
 
         elif mode == "exit":

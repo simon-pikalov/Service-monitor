@@ -1,4 +1,4 @@
-﻿# coding: utf-8
+# coding: utf-8
 
 import time
 import subprocess
@@ -136,10 +136,11 @@ class linux(threading.Thread):
                 if (new != "" and history != "" and new in history):
                     inside = 1
             if inside == 0 and history != "":
-                messege = time.ctime() + "," + history + ",changed status\n"
+                messege = time.ctime() + "," + history + ",changed status"
                 #print(messege)
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
-                self.Status_Log.write(messege)
+                encrypted = encrypt(self.key,messege)
+                self.Status_Log.write(encrypted)
                 self.Status_Log.close()
 
 
@@ -151,10 +152,11 @@ class linux(threading.Thread):
                 if (new != "" and history != "" and new in history):
                     inside = 1
             if inside == 0 and new != "":
-                messege=time.ctime() + "," + new + ",changed status\n"
+                messege=time.ctime() + "," + new + ",changed status"
                 #print(messege)
                 self.Status_Log = open(self.Status_Log_FileName, 'a')
-                self.Status_Log.write(messege)
+                encrypted = encrypt(self.key,messege)
+                self.Status_Log.write(encrypted)
                 self.Status_Log.close()
 
 
@@ -173,7 +175,8 @@ class linux(threading.Thread):
         self.historyLog = split
         for line in split:
             messege = time.ctime() + "," + line+"\n"
-            self.serviceList.write(messege)
+            ecncrypted = encrypt(self.key, messege)
+            self.serviceList.write(ecncrypted)
         self.serviceList.close()
 
     def run(self):
@@ -290,6 +293,10 @@ def substringComa(word):
     return wordStr
 
 
+
+#       crypto  function  part #
+##############################################
+
 # with the help of this site
 #https://nitratine.net/blog/post/encryption-and-decryption-in-python/
 def key_from_password():
@@ -350,6 +357,14 @@ def decrypt(key,encrypted):
     f = Fernet(key)
     decrypted = f.decrypt(encrypted)
     return decrypted
+    
+    
+    
+    
+    
+    
+    
+    
 
 def main() :
     print("Service monitor created by Simon Pikalov")

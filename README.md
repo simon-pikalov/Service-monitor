@@ -51,11 +51,15 @@ Type menual and then type the time info
 ![](photolib/menual.png)
 
 
-### Log file   : 
+### Log file (decrypted)  : 
 This log file show's all the services running on your computer with a interval that the user chooses 
 ![](photolib/logper.png)
 
-### Event Log file   : 
+### Log file (encrypted)  : 
+This log file show's all the services running on your computer with a interval that the user chooses 
+![](photolib/list_encrypted.png)
+
+### Event Log file (decrypted)  : 
 This log file show's all the services changed on your computer compered to the previous log.
 ![](photolib/log.png)
 
@@ -66,4 +70,5 @@ This log file show's all the services changed on your computer compered to the p
 
 
    
+
 

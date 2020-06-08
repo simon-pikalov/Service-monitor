@@ -40,6 +40,12 @@ $ pip install -r requirements.txt
 Type help
 ![](photolib/help.png)
 
+## decrypt menu  : 
+Type decrypt
+
+![](photolib/decrypt.png)
+
+
 ### Auto Mode : 
 Type auto and then choose a time stamp for intervals of the program to run. 
 ![](photolib/auto.png)
